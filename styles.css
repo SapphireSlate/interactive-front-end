@@ -27,24 +27,15 @@ body {
     pointer-events: none;
     z-index: 1;
     text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
-    transition: opacity 0.5s ease;
-    animation: fadeInOut 5s ease-in-out infinite;
-}
-
-@keyframes fadeInOut {
-    0%, 100% { opacity: 0.7; }
-    50% { opacity: 1; }
 }
 
 .overlay h1 {
-    font-size: 3rem;
+    font-size: 2.5rem;
     margin-bottom: 1rem;
     background: linear-gradient(45deg, #4a90e2, #9b59b6);
     background-clip: text;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
-    text-shadow: none;
-    position: relative;
 }
 
 .overlay h1::after {
@@ -70,72 +61,100 @@ body {
     left: 50%;
     transform: translateX(-50%);
     background: rgba(10, 12, 36, 0.8);
-    padding: 15px;
+    padding: 20px;
     border-radius: 15px;
     backdrop-filter: blur(10px);
     z-index: 100;
     display: flex;
-    gap: 20px;
+    flex-direction: column;
+    gap: 15px;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-    transition: all 0.3s ease;
     border: 1px solid rgba(74, 144, 226, 0.1);
+    min-width: 300px;
 }
 
-.ui-controls:hover {
-    background: rgba(10, 12, 36, 0.9);
-    transform: translateX(-50%) translateY(-2px);
-    box-shadow: 0 6px 25px rgba(0, 0, 0, 0.4);
-}
-
-.mode-selector {
+.tool-panel {
     display: flex;
     gap: 10px;
+    justify-content: center;
 }
 
-.mode-selector button {
+.tool-btn {
     background: rgba(74, 144, 226, 0.2);
     border: 1px solid rgba(74, 144, 226, 0.3);
     color: #a8b2d1;
-    padding: 8px 15px;
+    padding: 10px 20px;
     border-radius: 8px;
     cursor: pointer;
     transition: all 0.3s ease;
-    font-size: 0.9rem;
-    text-transform: uppercase;
-    letter-spacing: 1px;
+    font-size: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    position: relative;
+    overflow: hidden;
 }
 
-.mode-selector button:hover {
+.tool-btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(45deg, rgba(74, 144, 226, 0.1), rgba(155, 89, 182, 0.1));
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.tool-btn:hover {
     background: rgba(74, 144, 226, 0.3);
     transform: translateY(-2px);
     border-color: rgba(74, 144, 226, 0.5);
     color: #ffffff;
 }
 
-.interaction-control {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    color: #a8b2d1;
+.tool-btn:hover::before {
+    opacity: 1;
 }
 
-.interaction-control label {
+.tool-btn.active {
+    background: rgba(74, 144, 226, 0.4);
+    border-color: rgba(74, 144, 226, 0.6);
+    color: #ffffff;
+    box-shadow: 0 0 15px rgba(74, 144, 226, 0.3);
+}
+
+.tool-btn.active::before {
+    opacity: 1;
+    background: linear-gradient(45deg, rgba(74, 144, 226, 0.2), rgba(155, 89, 182, 0.2));
+}
+
+.time-control {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    align-items: center;
+}
+
+.time-control label {
+    color: #a8b2d1;
     font-size: 0.9rem;
     text-transform: uppercase;
     letter-spacing: 1px;
 }
 
-.interaction-control input[type="range"] {
-    appearance: none;
-    -webkit-appearance: none;
-    width: 120px;
+.day-speed-slider {
+    width: 100%;
     height: 4px;
     background: rgba(74, 144, 226, 0.2);
     border-radius: 2px;
     outline: none;
+    appearance: none;
+    -webkit-appearance: none;
 }
 
-.interaction-control input[type="range"]::-webkit-slider-thumb {
+.day-speed-slider::-webkit-slider-thumb {
     -webkit-appearance: none;
     width: 16px;
     height: 16px;
@@ -146,29 +165,31 @@ body {
     box-shadow: 0 0 10px rgba(74, 144, 226, 0.5);
 }
 
-.interaction-control input[type="range"]::-webkit-slider-thumb:hover {
+.day-speed-slider::-webkit-slider-thumb:hover {
     transform: scale(1.2);
     background: #9b59b6;
     box-shadow: 0 0 15px rgba(155, 89, 182, 0.6);
 }
 
-.sound-toggle {
-    background: rgba(74, 144, 226, 0.2);
-    border: 1px solid rgba(74, 144, 226, 0.3);
-    color: #a8b2d1;
-    padding: 8px 15px;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    font-size: 1.2rem;
-    margin-left: 10px;
+.stats-panel {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    text-align: center;
+    padding-top: 10px;
+    border-top: 1px solid rgba(74, 144, 226, 0.2);
 }
 
-.sound-toggle:hover {
-    background: rgba(74, 144, 226, 0.3);
-    transform: translateY(-2px);
-    border-color: rgba(74, 144, 226, 0.5);
+.stats-panel div {
+    color: #a8b2d1;
+    font-size: 0.9rem;
+}
+
+.stats-panel span {
+    display: block;
     color: #ffffff;
+    font-size: 1.1rem;
+    margin-top: 3px;
 }
 
 .dynamic-button {
@@ -245,18 +266,17 @@ body {
 }
 
 @media (max-width: 768px) {
-    .dynamic-button {
-        padding: 12px 20px;
-        font-size: 1rem;
+    .ui-controls {
+        min-width: 280px;
+        padding: 15px;
     }
-    
-    .inner-button,
-    .outer-button {
-        bottom: 90px;
+
+    .tool-btn {
+        padding: 8px 15px;
+        font-size: 0.9rem;
     }
-    
-    .zoom-instructions {
-        bottom: 10px;
+
+    .stats-panel {
         font-size: 0.8rem;
     }
 } 

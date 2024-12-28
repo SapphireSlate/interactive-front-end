@@ -1,125 +1,66 @@
-# Interactive 3D Particle Animation
+# Digital Garden
 
-A stunning interactive 3D particle animation built with Three.js, featuring dynamic particle systems, interactive controls, and immersive audio feedback.
-
-## Live Demo
-Check out the live demo at: [https://sapphireslate.github.io/interactive-front-end/](https://sapphireslate.github.io/interactive-front-end/)
-
-![Interactive 3D Animation](preview.gif)
+An interactive 3D ecosystem simulation featuring a Windows XP "Bliss" inspired environment where you can plant digital organisms and watch them grow and interact.
 
 ## Features
 
-### Particle Modes
-- **Sphere**: Particles form a perfect sphere with subtle animations
-- **Cube**: Particles arrange in a cubic formation
-- **Tornado**: Creates a dynamic tornado-like spiral formation
+- **Windows XP Inspired Environment**
+  - Iconic rolling hills and blue sky backdrop
+  - Dynamic day/night cycle with smooth transitions
+  - Realistic lighting and shadows
 
-### Interactive Controls
-- **Mouse Movement**: Rotate and interact with the particle system
-- **Zoom Controls**: Scroll to zoom in/out, revealing different interaction buttons
-- **Interaction Strength**: Adjust how strongly particles respond to mouse movements
-- **Sound Toggle**: Enable/disable ambient audio feedback
+- **Interactive Ecosystem**
+  - Plant seeds and watch them grow
+  - Add herbivores that seek and consume plants
+  - Natural reproduction and energy systems
+  - Spatial partitioning for efficient organism interactions
 
-### Special Effects
-1. **EXPAND Effect** (Visible when zoomed out)
-   - Particles burst outward in a spiral pattern
-   - Includes gravity and drift effects
-   - Smooth transition back to original formation
+- **Real-time Controls**
+  - Easy-to-use planting tools
+  - Adjustable day/night cycle speed
+  - Live statistics tracking
+  - Organism count display
 
-2. **COLLAPSE Effect** (Visible when zoomed in)
-   - Creates an inward spiral vortex effect
-   - Particles smoothly converge to the center
-   - Elegant reformation to original state
+## Technologies Used
 
-### Visual Design
-- Dynamic color transitions
-- Smooth particle movements
-- Retro-futuristic UI elements
-- Responsive design for all screen sizes
-- Beautiful gradient overlays
-
-### Audio System
-- Ambient background sounds
-- Mode-specific audio feedback
-- Interactive sound modulation based on movement
-- Volume adjustment with zoom level
-
-## Technical Details
-
-### Core Technologies
-- Three.js for 3D rendering
-- Web Audio API for sound synthesis
+- Three.js for 3D graphics
+- Custom shaders for sky effects
 - Modern JavaScript (ES6+)
-- CSS3 for styling
+- CSS3 for UI styling
 
-### Key Components
-
-#### ParticleAnimation Class
-- Handles core 3D scene setup
-- Manages particle system and animations
-- Implements interaction logic
-- Controls special effects
-
-#### AudioSystem Class
-- Manages Web Audio context
-- Creates synthesized sounds
-- Handles audio modulation
-- Provides smooth transitions
-
-### Performance Optimizations
-- Efficient particle system using BufferGeometry
-- Optimized particle count for mobile devices
-- Hardware acceleration with WebGL
-- Smooth animations with requestAnimationFrame
-
-## Setup and Usage
+## Getting Started
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/yourusername/interactive-3d-particles.git
+git clone https://github.com/YourUsername/digital-garden.git
+cd digital-garden
 ```
 
-2. Open the project directory:
+2. Start a local server (e.g., using Python):
 ```bash
-cd interactive-3d-particles
+python -m http.server 8001
 ```
 
-3. Serve the files using a local server (e.g., Python's built-in server):
-```bash
-python -m http.server 8000
+3. Open your browser and navigate to:
 ```
-
-4. Open your browser and navigate to:
-```
-http://localhost:8000
+http://localhost:8001
 ```
 
 ## Controls
 
-- **Mouse Movement**: Rotate the particle system
-- **Scroll**: Zoom in/out
-- **Slider**: Adjust interaction strength
-- **Mode Buttons**: Switch between Sphere, Cube, and Tornado modes
-- **Sound Button**: Toggle audio feedback
-- **EXPAND Button**: Trigger outward spiral explosion (visible when zoomed out)
-- **COLLAPSE Button**: Trigger inward vortex effect (visible when zoomed in)
+- Click "🌱 Plant Seed" to add new plants
+- Click "🐛 Add Herbivore" to add new creatures
+- Use the slider to adjust day/night cycle speed
+- Click anywhere on the terrain to place organisms
 
-## Browser Support
-- Chrome (recommended)
-- Firefox
-- Safari
-- Edge
+## Development
 
-## Contributing
-Feel free to submit issues, fork the repository, and create pull requests for any improvements.
+The project structure:
+- `main.js`: Core application and scene setup
+- `ecosystem.js`: Organism behavior and ecosystem management
+- `styles.css`: UI styling
+- `index.html`: Main entry point
 
 ## License
-This project is licensed under the MIT License - see the LICENSE file for details.
 
-## Deployment
-This project is deployed using GitHub Pages. To deploy your own version:
-
-1. Fork this repository
-2. Go to your fork's Settings > Pages
-3. Set the source branch to `gh-pages`
-4. Your site will be published at `https://[your-username].github.io/interactive-front-end/` 
+MIT License - feel free to use and modify for your own projects! 
