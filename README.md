@@ -2,6 +2,9 @@
 
 A stunning interactive 3D particle animation built with Three.js, featuring dynamic particle systems, interactive controls, and immersive audio feedback.
 
+## Live Demo
+Check out the live demo at: [https://sapphireslate.github.io/interactive-front-end/](https://sapphireslate.github.io/interactive-front-end/)
+
 ![Interactive 3D Animation](preview.gif)
 
 ## Features
@@ -111,4 +114,12 @@ http://localhost:8000
 Feel free to submit issues, fork the repository, and create pull requests for any improvements.
 
 ## License
-This project is licensed under the MIT License - see the LICENSE file for details. 
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+## Deployment
+This project is deployed using GitHub Pages. To deploy your own version:
+
+1. Fork this repository
+2. Go to your fork's Settings > Pages
+3. Set the source branch to `gh-pages`
+4. Your site will be published at `https://[your-username].github.io/interactive-front-end/` 
