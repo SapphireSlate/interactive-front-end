@@ -408,6 +408,32 @@ class EcosystemManager {
         this.addOrganism(herbivore);
         return herbivore;
     }
+
+    getPlantCount() {
+        return this.organisms.filter(org => org instanceof Plant).length;
+    }
+    
+    getCreatureCount() {
+        return this.organisms.filter(org => org instanceof Herbivore).length;
+    }
+    
+    setDaySpeed(speed) {
+        this.environmentalFactors.dayLength = speed;
+    }
+
+    removeNearbyOrganisms(point, radius) {
+        // Convert point to Vector3 if it isn't already
+        const position = point instanceof THREE.Vector3 ? point : new THREE.Vector3(point.x, point.y, point.z);
+        
+        // Find and remove organisms within radius
+        for (let i = this.organisms.length - 1; i >= 0; i--) {
+            const organism = this.organisms[i];
+            if (organism.position.distanceTo(position) <= radius) {
+                organism.die();
+                this.organisms.splice(i, 1);
+            }
+        }
+    }
 }
 
 export { EcosystemManager, Plant, Herbivore, DigitalOrganism }; 
