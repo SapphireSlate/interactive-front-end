@@ -11,59 +11,41 @@ class DigitalOrganism {
         this.generation = 1;
         this.dna = {
             size: dna.size || Math.random() * 0.5 + 0.5,
-            color: dna.color || new THREE.Color().setHSL(Math.random(), 0.8, 0.5),
+            color: dna.color || this.getDefaultColor(),
             speed: dna.speed || Math.random() * 0.5 + 0.5,
             energyEfficiency: dna.energyEfficiency || Math.random() * 0.4 + 0.8
         };
         
-        this.particle = this.createParticle();
-        this.scene.add(this.particle);
+        this.mesh = this.createMesh();
+        this.scene.add(this.mesh);
     }
 
-    createParticle() {
-        const geometry = new THREE.BufferGeometry();
-        const positions = new Float32Array(3);
-        positions[0] = this.position.x;
-        positions[1] = this.position.y;
-        positions[2] = this.position.z;
+    getDefaultColor() {
+        return new THREE.Color().setHSL(Math.random(), 0.8, 0.5);
+    }
 
-        geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-
-        const material = new THREE.PointsMaterial({
-            size: this.dna.size * 0.5,
-            color: this.dna.color,
-            transparent: true,
-            opacity: 0.9,
-            blending: THREE.AdditiveBlending,
-            sizeAttenuation: true,
-            depthWrite: false
-        });
-
-        return new THREE.Points(geometry, material);
+    createMesh() {
+        throw new Error('createMesh must be implemented by subclasses');
     }
 
     update(deltaTime, environmentalFactors) {
         this.age += deltaTime;
         this.energy -= deltaTime * (1 / this.dna.energyEfficiency);
         
-        // Update particle position
-        const positions = this.particle.geometry.attributes.position.array;
-        positions[0] = this.position.x;
-        positions[1] = this.position.y;
-        positions[2] = this.position.z;
-        this.particle.geometry.attributes.position.needsUpdate = true;
+        // Update mesh position
+        this.mesh.position.copy(this.position);
         
-        // Base particle pulsing with larger effect
+        // Base mesh pulsing with larger effect
         const scale = 1 + Math.sin(this.age * 2) * 0.2;
-        this.particle.material.size = this.dna.size * 0.5 * scale;
+        this.mesh.scale.setScalar(this.dna.size * scale);
         
         return this.energy > 0;
     }
 
     die() {
-        this.scene.remove(this.particle);
-        this.particle.geometry.dispose();
-        this.particle.material.dispose();
+        this.scene.remove(this.mesh);
+        if (this.mesh.geometry) this.mesh.geometry.dispose();
+        if (this.mesh.material) this.mesh.material.dispose();
     }
 }
 
@@ -77,40 +59,41 @@ class Plant extends DigitalOrganism {
         this.reproductionCooldownTime = 5;
     }
 
-    update(deltaTime, environmentalFactors) {
-        if (environmentalFactors.isDayTime) {
-            // Photosynthesis with diminishing returns as energy increases
-            const energyFactor = 1 - (this.energy / this.maxEnergy);
-            const energyGained = this.photosynthesisRate * environmentalFactors.lightLevel * deltaTime * energyFactor;
-            this.energy = Math.min(this.maxEnergy, this.energy + energyGained);
-            
-            // Growth based on energy levels
-            if (this.dna.size < 2.0 && this.energy > 100) {
-                const growthRate = 0.001 * (this.energy / this.maxEnergy);
-                this.dna.size *= (1 + growthRate);
-                this.energy -= growthRate * 10; // Growth consumes energy
-            }
-        } else {
-            // Slight energy consumption at night
-            this.energy -= deltaTime * 2;
+    getDefaultColor() {
+        // Random shade of green
+        return new THREE.Color().setHSL(0.3 + Math.random() * 0.1, 0.7 + Math.random() * 0.3, 0.4 + Math.random() * 0.2);
+    }
+
+    createMesh() {
+        // Create a flower-like geometry
+        const geometry = new THREE.BufferGeometry();
+        const vertices = [];
+        const petalCount = 5;
+        const petalSize = 0.2;
+
+        // Create center of the flower
+        vertices.push(0, 0, 0);
+
+        // Create petals
+        for (let i = 0; i < petalCount; i++) {
+            const angle = (i / petalCount) * Math.PI * 2;
+            const x = Math.cos(angle) * petalSize;
+            const z = Math.sin(angle) * petalSize;
+            vertices.push(x, 0.1, z);
+            vertices.push(0, 0, 0); // Connect back to center
         }
 
-        // Update reproduction cooldown
-        if (this.reproductionCooldown > 0) {
-            this.reproductionCooldown -= deltaTime;
-        }
+        geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
 
-        // Check reproduction readiness
-        this.readyToReproduce = (
-            this.energy > 150 && 
-            this.reproductionCooldown <= 0 && 
-            Math.random() < 0.001
-        );
+        const material = new THREE.MeshPhongMaterial({
+            color: this.dna.color,
+            emissive: this.dna.color.clone().multiplyScalar(0.2),
+            shininess: 10,
+            transparent: true,
+            opacity: 0.9
+        });
 
-        // Update particle appearance
-        this.updateAppearance(environmentalFactors);
-
-        return super.update(deltaTime, environmentalFactors);
+        return new THREE.Mesh(geometry, material);
     }
 
     updateAppearance(environmentalFactors) {
@@ -118,15 +101,15 @@ class Plant extends DigitalOrganism {
         const healthFactor = this.energy / this.maxEnergy;
         const timeFactor = environmentalFactors.lightLevel;
         
-        const hue = 0.3; // Base green
-        const saturation = 0.6 + (healthFactor * 0.4); // More saturated when healthy
-        const lightness = 0.3 + (timeFactor * 0.4); // Brighter during day
+        const baseColor = this.dna.color.clone();
+        const currentColor = new THREE.Color().setHSL(
+            baseColor.getHSL({}).h,
+            baseColor.getHSL({}).s * (0.6 + healthFactor * 0.4),
+            baseColor.getHSL({}).l * (0.3 + timeFactor * 0.7)
+        );
         
-        this.particle.material.color.setHSL(hue, saturation, lightness);
-        
-        // Size pulsing based on energy
-        const pulseScale = 1 + (Math.sin(this.age * 2) * 0.1 * healthFactor);
-        this.particle.material.size = this.dna.size * 0.1 * pulseScale;
+        this.mesh.material.color.copy(currentColor);
+        this.mesh.material.emissive.copy(currentColor).multiplyScalar(0.2);
     }
 
     reproduce() {
@@ -165,52 +148,68 @@ class Herbivore extends DigitalOrganism {
         this.readyToReproduce = false;
     }
 
-    update(deltaTime, environmentalFactors) {
-        // More active during day
-        const speedMultiplier = environmentalFactors.isDayTime ? 1.0 : 0.5;
+    getDefaultColor() {
+        // Random warm colors for creatures
+        return new THREE.Color().setHSL(Math.random() * 0.1 + 0.05, 0.8, 0.5); // Reddish colors
+    }
+
+    createMesh() {
+        // Create a simple creature-like geometry
+        const geometry = new THREE.BufferGeometry();
+        const vertices = [];
         
-        // Only search for new plant periodically
-        if (!this.targetPlant && (this.age - this.lastSearchTime) > this.searchInterval) {
-            this.findNearestPlant();
-            this.lastSearchTime = this.age;
-        }
+        // Body (triangular shape)
+        vertices.push(
+            0, 0, 0.2,  // nose
+            -0.1, 0, -0.1,  // left back
+            0.1, 0, -0.1,   // right back
+        );
 
-        if (this.targetPlant) {
-            // Check if target plant is still alive
-            if (this.targetPlant.energy <= 0) {
-                this.targetPlant = null;
-                return super.update(deltaTime, environmentalFactors);
-            }
+        // Add some "legs"
+        const legPositions = [
+            [-0.08, 0, 0], // left front
+            [0.08, 0, 0],  // right front
+            [-0.05, 0, -0.1], // left back
+            [0.05, 0, -0.1]   // right back
+        ];
 
-            const direction = new THREE.Vector3()
-                .subVectors(this.targetPlant.position, this.position)
-                .normalize();
-            
-            // Move towards target
-            this.position.add(
-                direction.multiplyScalar(this.dna.speed * speedMultiplier * deltaTime)
+        for (const pos of legPositions) {
+            vertices.push(
+                pos[0], pos[1], pos[2],
+                pos[0], -0.05, pos[2],
+                pos[0], pos[1], pos[2]
             );
-            
-            // Update particle position
-            const positions = this.particle.geometry.attributes.position.array;
-            positions[0] = this.position.x;
-            positions[1] = this.position.y;
-            positions[2] = this.position.z;
-            this.particle.geometry.attributes.position.needsUpdate = true;
-
-            // Check if close enough to eat
-            if (this.position.distanceTo(this.targetPlant.position) < this.eatDistance) {
-                this.eat(this.targetPlant);
-            }
-        } else {
-            // Random movement when no target
-            this.wander(deltaTime, speedMultiplier);
         }
 
-        // Check reproduction readiness
-        this.readyToReproduce = (this.energy > 200 && Math.random() < 0.001);
+        geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
 
-        return super.update(deltaTime, environmentalFactors);
+        const material = new THREE.MeshPhongMaterial({
+            color: this.dna.color,
+            emissive: this.dna.color.clone().multiplyScalar(0.2),
+            shininess: 30,
+            transparent: true,
+            opacity: 0.9
+        });
+
+        const mesh = new THREE.Mesh(geometry, material);
+        mesh.scale.setScalar(this.dna.size * 0.5); // Make creatures a bit smaller than plants
+        return mesh;
+    }
+
+    update(deltaTime, environmentalFactors) {
+        const alive = super.update(deltaTime, environmentalFactors);
+        
+        if (this.targetPlant) {
+            // Make the creature face its target
+            const direction = new THREE.Vector3()
+                .subVectors(this.targetPlant.position, this.position);
+            if (direction.length() > 0.001) {
+                const angle = Math.atan2(direction.x, direction.z);
+                this.mesh.rotation.y = angle;
+            }
+        }
+        
+        return alive;
     }
 
     wander(deltaTime, speedMultiplier) {
@@ -219,12 +218,8 @@ class Herbivore extends DigitalOrganism {
         this.position.y += (Math.random() - 0.5) * 0.1 * speedMultiplier * deltaTime;
         this.position.z += (Math.random() - 0.5) * 0.1 * speedMultiplier * deltaTime;
 
-        // Update particle position
-        const positions = this.particle.geometry.attributes.position.array;
-        positions[0] = this.position.x;
-        positions[1] = this.position.y;
-        positions[2] = this.position.z;
-        this.particle.geometry.attributes.position.needsUpdate = true;
+        // Update mesh position
+        this.mesh.position.copy(this.position);
     }
 
     findNearestPlant() {
