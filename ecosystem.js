@@ -10,7 +10,7 @@ class DigitalOrganism {
         this.age = 0;
         this.generation = 1;
         this.dna = {
-            size: dna.size || Math.random() * 0.5 + 0.5,
+            size: dna.size || Math.random() * 1.5 + 1.0,
             color: dna.color || this.getDefaultColor(),
             speed: dna.speed || Math.random() * 0.5 + 0.5,
             energyEfficiency: dna.energyEfficiency || Math.random() * 0.4 + 0.8
@@ -69,7 +69,7 @@ class Plant extends DigitalOrganism {
         const geometry = new THREE.BufferGeometry();
         const vertices = [];
         const petalCount = 5;
-        const petalSize = 0.2;
+        const petalSize = 0.5;
 
         // Create center of the flower
         vertices.push(0, 0, 0);
@@ -79,7 +79,7 @@ class Plant extends DigitalOrganism {
             const angle = (i / petalCount) * Math.PI * 2;
             const x = Math.cos(angle) * petalSize;
             const z = Math.sin(angle) * petalSize;
-            vertices.push(x, 0.1, z);
+            vertices.push(x, 0.2, z);
             vertices.push(0, 0, 0); // Connect back to center
         }
 
@@ -160,23 +160,23 @@ class Herbivore extends DigitalOrganism {
         
         // Body (triangular shape)
         vertices.push(
-            0, 0, 0.2,  // nose
-            -0.1, 0, -0.1,  // left back
-            0.1, 0, -0.1,   // right back
+            0, 0, 0.4,    // nose (z increased from 0.2 to 0.4)
+            -0.2, 0, -0.2, // left back (increased from 0.1 to 0.2)
+            0.2, 0, -0.2   // right back (increased from 0.1 to 0.2)
         );
 
         // Add some "legs"
         const legPositions = [
-            [-0.08, 0, 0], // left front
-            [0.08, 0, 0],  // right front
-            [-0.05, 0, -0.1], // left back
-            [0.05, 0, -0.1]   // right back
+            [-0.16, 0, 0],    // left front (doubled from 0.08)
+            [0.16, 0, 0],     // right front (doubled from 0.08)
+            [-0.1, 0, -0.2],  // left back (doubled from 0.05)
+            [0.1, 0, -0.2]    // right back (doubled from 0.05)
         ];
 
         for (const pos of legPositions) {
             vertices.push(
                 pos[0], pos[1], pos[2],
-                pos[0], -0.05, pos[2],
+                pos[0], -0.1, pos[2], // Increased leg length from -0.05 to -0.1
                 pos[0], pos[1], pos[2]
             );
         }
@@ -192,7 +192,7 @@ class Herbivore extends DigitalOrganism {
         });
 
         const mesh = new THREE.Mesh(geometry, material);
-        mesh.scale.setScalar(this.dna.size * 0.5); // Make creatures a bit smaller than plants
+        mesh.scale.setScalar(this.dna.size); // Removed the 0.5 reduction factor
         return mesh;
     }
 
