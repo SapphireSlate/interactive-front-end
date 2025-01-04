@@ -36,7 +36,7 @@ class DigitalOrganism {
         this.mesh.position.copy(this.position);
         
         // Base mesh pulsing with larger effect
-        const scale = 1 + Math.sin(this.age * 2) * 0.2;
+        const scale = 1 + Math.sin(this.age * 2) * 0.1;
         this.mesh.scale.setScalar(this.dna.size * scale);
         
         return this.energy > 0;
@@ -65,35 +65,45 @@ class Plant extends DigitalOrganism {
     }
 
     createMesh() {
-        // Create a flower-like geometry
-        const geometry = new THREE.BufferGeometry();
-        const vertices = [];
+        // Create a flower-like geometry using a proper mesh
+        const petalGeometry = new THREE.ConeGeometry(0.3, 0.8, 8);
         const petalCount = 5;
-        const petalSize = 0.5;
-
-        // Create center of the flower
-        vertices.push(0, 0, 0);
+        const petalGroup = new THREE.Group();
 
         // Create petals
         for (let i = 0; i < petalCount; i++) {
             const angle = (i / petalCount) * Math.PI * 2;
-            const x = Math.cos(angle) * petalSize;
-            const z = Math.sin(angle) * petalSize;
-            vertices.push(x, 0.2, z);
-            vertices.push(0, 0, 0); // Connect back to center
+            const petal = new THREE.Mesh(
+                petalGeometry,
+                new THREE.MeshPhongMaterial({
+                    color: this.dna.color,
+                    emissive: this.dna.color.clone().multiplyScalar(0.2),
+                    shininess: 10,
+                    transparent: true,
+                    opacity: 0.9
+                })
+            );
+            
+            petal.position.x = Math.cos(angle) * 0.3;
+            petal.position.z = Math.sin(angle) * 0.3;
+            petal.rotation.x = Math.PI / 2;
+            petal.rotation.z = angle;
+            petal.castShadow = true;
+            petalGroup.add(petal);
         }
 
-        geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
-
-        const material = new THREE.MeshPhongMaterial({
-            color: this.dna.color,
-            emissive: this.dna.color.clone().multiplyScalar(0.2),
-            shininess: 10,
-            transparent: true,
-            opacity: 0.9
+        // Create center of flower
+        const centerGeometry = new THREE.SphereGeometry(0.2, 8, 8);
+        const centerMaterial = new THREE.MeshPhongMaterial({
+            color: new THREE.Color(0xffff00),
+            emissive: new THREE.Color(0xffff00).multiplyScalar(0.2),
+            shininess: 20
         });
+        const center = new THREE.Mesh(centerGeometry, centerMaterial);
+        center.castShadow = true;
+        petalGroup.add(center);
 
-        return new THREE.Mesh(geometry, material);
+        return petalGroup;
     }
 
     updateAppearance(environmentalFactors) {
@@ -154,72 +164,110 @@ class Herbivore extends DigitalOrganism {
     }
 
     createMesh() {
-        // Create a simple creature-like geometry
-        const geometry = new THREE.BufferGeometry();
-        const vertices = [];
-        
-        // Body (triangular shape)
-        vertices.push(
-            0, 0, 0.4,    // nose (z increased from 0.2 to 0.4)
-            -0.2, 0, -0.2, // left back (increased from 0.1 to 0.2)
-            0.2, 0, -0.2   // right back (increased from 0.1 to 0.2)
-        );
+        const creatureGroup = new THREE.Group();
 
-        // Add some "legs"
-        const legPositions = [
-            [-0.16, 0, 0],    // left front (doubled from 0.08)
-            [0.16, 0, 0],     // right front (doubled from 0.08)
-            [-0.1, 0, -0.2],  // left back (doubled from 0.05)
-            [0.1, 0, -0.2]    // right back (doubled from 0.05)
-        ];
-
-        for (const pos of legPositions) {
-            vertices.push(
-                pos[0], pos[1], pos[2],
-                pos[0], -0.1, pos[2], // Increased leg length from -0.05 to -0.1
-                pos[0], pos[1], pos[2]
-            );
-        }
-
-        geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
-
-        const material = new THREE.MeshPhongMaterial({
+        // Body (using actual 3D geometry)
+        const bodyGeometry = new THREE.ConeGeometry(0.2, 0.6, 4);
+        const bodyMaterial = new THREE.MeshPhongMaterial({
             color: this.dna.color,
             emissive: this.dna.color.clone().multiplyScalar(0.2),
             shininess: 30,
             transparent: true,
             opacity: 0.9
         });
+        const body = new THREE.Mesh(bodyGeometry, bodyMaterial);
+        body.rotation.x = -Math.PI / 2;
+        body.castShadow = true;
+        creatureGroup.add(body);
 
-        const mesh = new THREE.Mesh(geometry, material);
-        mesh.scale.setScalar(this.dna.size); // Removed the 0.5 reduction factor
-        return mesh;
+        // Legs
+        const legGeometry = new THREE.CylinderGeometry(0.02, 0.02, 0.2);
+        const legMaterial = new THREE.MeshPhongMaterial({
+            color: this.dna.color,
+            shininess: 30
+        });
+
+        const legPositions = [
+            [-0.15, -0.1, 0.1],  // front left
+            [0.15, -0.1, 0.1],   // front right
+            [-0.15, -0.1, -0.1], // back left
+            [0.15, -0.1, -0.1]   // back right
+        ];
+
+        legPositions.forEach(pos => {
+            const leg = new THREE.Mesh(legGeometry, legMaterial);
+            leg.position.set(pos[0], pos[1], pos[2]);
+            leg.castShadow = true;
+            creatureGroup.add(leg);
+        });
+
+        return creatureGroup;
     }
 
     update(deltaTime, environmentalFactors) {
         const alive = super.update(deltaTime, environmentalFactors);
         
-        if (this.targetPlant) {
-            // Make the creature face its target
-            const direction = new THREE.Vector3()
-                .subVectors(this.targetPlant.position, this.position);
-            if (direction.length() > 0.001) {
-                const angle = Math.atan2(direction.x, direction.z);
-                this.mesh.rotation.y = angle;
-            }
+        // More active during day
+        const speedMultiplier = environmentalFactors.isDayTime ? 1.0 : 0.5;
+        
+        // Only search for new plant periodically
+        if (!this.targetPlant && (this.age - this.lastSearchTime) > this.searchInterval) {
+            this.findNearestPlant();
+            this.lastSearchTime = this.age;
         }
+
+        if (this.targetPlant) {
+            // Check if target plant is still alive
+            if (this.targetPlant.energy <= 0) {
+                this.targetPlant = null;
+                return alive;
+            }
+
+            // Calculate direction to target
+            const direction = new THREE.Vector3()
+                .subVectors(this.targetPlant.position, this.position)
+                .normalize();
+            
+            // Move towards target
+            const moveSpeed = this.dna.speed * speedMultiplier * deltaTime;
+            this.position.add(direction.multiplyScalar(moveSpeed));
+            
+            // Make the creature face its target
+            const angle = Math.atan2(direction.x, direction.z);
+            this.mesh.rotation.y = angle;
+
+            // Check if close enough to eat
+            if (this.position.distanceTo(this.targetPlant.position) < this.eatDistance) {
+                this.eat(this.targetPlant);
+            }
+        } else {
+            // Random movement when no target
+            this.wander(deltaTime, speedMultiplier);
+        }
+
+        // Check reproduction readiness
+        this.readyToReproduce = (this.energy > 150 && Math.random() < 0.001);
         
         return alive;
     }
 
     wander(deltaTime, speedMultiplier) {
-        // Simple random movement
-        this.position.x += (Math.random() - 0.5) * 0.1 * speedMultiplier * deltaTime;
-        this.position.y += (Math.random() - 0.5) * 0.1 * speedMultiplier * deltaTime;
-        this.position.z += (Math.random() - 0.5) * 0.1 * speedMultiplier * deltaTime;
+        // More natural random movement
+        const wanderSpeed = this.dna.speed * speedMultiplier * deltaTime * 0.5;
+        const angle = this.age * 0.5 + Math.sin(this.age * 0.3) * 2;
+        
+        this.position.x += Math.cos(angle) * wanderSpeed;
+        this.position.z += Math.sin(angle) * wanderSpeed;
+        
+        // Keep creatures within bounds
+        const bounds = 20;
+        this.position.x = Math.max(-bounds, Math.min(bounds, this.position.x));
+        this.position.z = Math.max(-bounds, Math.min(bounds, this.position.z));
+        this.position.y = 0; // Keep on the ground
 
-        // Update mesh position
+        // Update mesh position and rotation
         this.mesh.position.copy(this.position);
+        this.mesh.rotation.y = angle;
     }
 
     findNearestPlant() {
