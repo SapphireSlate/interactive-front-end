@@ -317,7 +317,7 @@ class EcosystemManager {
             isDayTime: true,
             lightLevel: 1.0,
             temperature: 20,
-            dayLength: 60
+            dayLength: 60  // Default day length in seconds
         };
 
         this.gridSize = 1.0;
@@ -461,7 +461,9 @@ class EcosystemManager {
     }
     
     setDaySpeed(speed) {
-        this.environmentalFactors.dayLength = speed;
+        // Convert slider value (30-120) to day length (120-30)
+        // This makes the slider more intuitive: left = slower, right = faster
+        this.environmentalFactors.dayLength = 150 - speed;
     }
 
     removeNearbyOrganisms(point, radius) {
