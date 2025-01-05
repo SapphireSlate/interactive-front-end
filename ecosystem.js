@@ -320,6 +320,12 @@ class EcosystemManager {
             dayLength: 60  // Default day length in seconds
         };
 
+        this.stats = {
+            daysSurvived: 0,
+            lastDayTime: 0,
+            totalPopulation: 0
+        };
+
         this.gridSize = 1.0;
         this.grid = new Map();
     }
@@ -378,6 +384,7 @@ class EcosystemManager {
     addOrganism(organism) {
         this.organisms.push(organism);
         this.updateOrganismGrid(organism);
+        this.stats.totalPopulation = this.organisms.length;
     }
 
     // Find nearest plant for herbivores
@@ -405,29 +412,30 @@ class EcosystemManager {
     }
 
     update() {
-        const deltaTime = this.clock.getDelta();
+        // Update days survived
+        const currentTime = this.clock.getElapsedTime();
+        const newDayTime = Math.floor(currentTime / this.environmentalFactors.dayLength);
         
-        // Update day/night cycle
-        const time = this.clock.getElapsedTime();
-        const dayPhase = (time % this.environmentalFactors.dayLength) / this.environmentalFactors.dayLength;
-        this.environmentalFactors.isDayTime = dayPhase < 0.5;
-        this.environmentalFactors.lightLevel = Math.cos(dayPhase * Math.PI * 2) * 0.5 + 0.5;
+        if (newDayTime > this.stats.lastDayTime) {
+            this.stats.daysSurvived = newDayTime;
+            this.stats.lastDayTime = newDayTime;
+        }
 
-        // Update all organisms
+        // Update organisms
         for (let i = this.organisms.length - 1; i >= 0; i--) {
             const organism = this.organisms[i];
-            const isAlive = organism.update(deltaTime, this.environmentalFactors);
+            const isAlive = organism.update(this.clock.getDelta(), this.environmentalFactors);
             
             if (!isAlive) {
                 organism.die();
                 this.organisms.splice(i, 1);
+                this.stats.totalPopulation = this.organisms.length;
             } else {
-                // Update organism's position in the grid
                 this.updateOrganismGrid(organism);
             }
         }
 
-        // Process reproduction and add new organisms
+        // Process reproduction
         const newOrganisms = [];
         for (const organism of this.organisms) {
             if (organism.readyToReproduce) {
@@ -437,6 +445,8 @@ class EcosystemManager {
                 }
             }
         }
+        
+        // Add new organisms
         newOrganisms.forEach(organism => this.addOrganism(organism));
     }
 
@@ -467,10 +477,8 @@ class EcosystemManager {
     }
 
     removeNearbyOrganisms(point, radius) {
-        // Convert point to Vector3 if it isn't already
         const position = point instanceof THREE.Vector3 ? point : new THREE.Vector3(point.x, point.y, point.z);
         
-        // Find and remove organisms within radius
         for (let i = this.organisms.length - 1; i >= 0; i--) {
             const organism = this.organisms[i];
             if (organism.position.distanceTo(position) <= radius) {
@@ -478,6 +486,15 @@ class EcosystemManager {
                 this.organisms.splice(i, 1);
             }
         }
+        this.stats.totalPopulation = this.organisms.length;
+    }
+
+    getTotalPopulation() {
+        return this.stats.totalPopulation;
+    }
+
+    getDaysSurvived() {
+        return this.stats.daysSurvived;
     }
 }
 

@@ -197,12 +197,14 @@ class DigitalGarden {
     updateStats() {
         const plantCount = document.getElementById('plant-count');
         const creatureCount = document.getElementById('creature-count');
+        const totalPopulation = document.getElementById('total-population');
+        const daysSurvived = document.getElementById('days-survived');
         
-        if (plantCount && this.ecosystem) {
-            plantCount.textContent = this.ecosystem.getPlantCount();
-        }
-        if (creatureCount && this.ecosystem) {
-            creatureCount.textContent = this.ecosystem.getCreatureCount();
+        if (this.ecosystem) {
+            if (plantCount) plantCount.textContent = this.ecosystem.getPlantCount();
+            if (creatureCount) creatureCount.textContent = this.ecosystem.getCreatureCount();
+            if (totalPopulation) totalPopulation.textContent = this.ecosystem.getTotalPopulation();
+            if (daysSurvived) daysSurvived.textContent = this.ecosystem.getDaysSurvived();
         }
     }
 
