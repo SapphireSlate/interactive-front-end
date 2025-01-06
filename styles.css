@@ -99,6 +99,7 @@ body {
     width: 200px;
     height: 5px;
     -webkit-appearance: none;
+    appearance: none;
     background: #2c3e50;
     border-radius: 5px;
     outline: none;
