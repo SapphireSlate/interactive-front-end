@@ -77,7 +77,7 @@ class Plant extends DigitalOrganism {
                 petalGeometry,
                 new THREE.MeshPhongMaterial({
                     color: this.dna.color,
-                    emissive: this.dna.color.clone().multiplyScalar(0.2),
+                    specular: 0x050505,
                     shininess: 10,
                     transparent: true,
                     opacity: 0.9
@@ -96,7 +96,7 @@ class Plant extends DigitalOrganism {
         const centerGeometry = new THREE.SphereGeometry(0.2, 8, 8);
         const centerMaterial = new THREE.MeshPhongMaterial({
             color: new THREE.Color(0xffff00),
-            emissive: new THREE.Color(0xffff00).multiplyScalar(0.2),
+            specular: 0x050505,
             shininess: 20
         });
         const center = new THREE.Mesh(centerGeometry, centerMaterial);
@@ -166,11 +166,11 @@ class Herbivore extends DigitalOrganism {
     createMesh() {
         const creatureGroup = new THREE.Group();
 
-        // Body (using actual 3D geometry)
+        // Body
         const bodyGeometry = new THREE.ConeGeometry(0.2, 0.6, 4);
         const bodyMaterial = new THREE.MeshPhongMaterial({
             color: this.dna.color,
-            emissive: this.dna.color.clone().multiplyScalar(0.2),
+            specular: 0x050505,
             shininess: 30,
             transparent: true,
             opacity: 0.9
@@ -184,6 +184,7 @@ class Herbivore extends DigitalOrganism {
         const legGeometry = new THREE.CylinderGeometry(0.02, 0.02, 0.2);
         const legMaterial = new THREE.MeshPhongMaterial({
             color: this.dna.color,
+            specular: 0x050505,
             shininess: 30
         });
 
@@ -323,6 +324,9 @@ class EcosystemManager {
         this.stats = {
             daysSurvived: 0,
             lastDayTime: 0,
+            startTime: this.clock.getElapsedTime(),
+            plantCount: 0,
+            creatureCount: 0,
             totalPopulation: 0
         };
 
@@ -384,7 +388,14 @@ class EcosystemManager {
     addOrganism(organism) {
         this.organisms.push(organism);
         this.updateOrganismGrid(organism);
-        this.stats.totalPopulation = this.organisms.length;
+        
+        // Update population counts
+        if (organism instanceof Plant) {
+            this.stats.plantCount++;
+        } else if (organism instanceof Herbivore) {
+            this.stats.creatureCount++;
+        }
+        this.stats.totalPopulation = this.stats.plantCount + this.stats.creatureCount;
     }
 
     // Find nearest plant for herbivores
@@ -412,14 +423,15 @@ class EcosystemManager {
     }
 
     update() {
-        // Update days survived
-        const currentTime = this.clock.getElapsedTime();
-        const newDayTime = Math.floor(currentTime / this.environmentalFactors.dayLength);
+        const currentTime = this.clock.getElapsedTime() - this.stats.startTime;
+        const dayLength = this.environmentalFactors.dayLength;
         
-        if (newDayTime > this.stats.lastDayTime) {
-            this.stats.daysSurvived = newDayTime;
-            this.stats.lastDayTime = newDayTime;
-        }
+        // Update days survived with precise decimal
+        this.stats.daysSurvived = Math.floor((currentTime / dayLength) * 100) / 100;
+
+        // Reset population counts for accurate tracking
+        this.stats.plantCount = 0;
+        this.stats.creatureCount = 0;
 
         // Update organisms
         for (let i = this.organisms.length - 1; i >= 0; i--) {
@@ -429,11 +441,19 @@ class EcosystemManager {
             if (!isAlive) {
                 organism.die();
                 this.organisms.splice(i, 1);
-                this.stats.totalPopulation = this.organisms.length;
             } else {
                 this.updateOrganismGrid(organism);
+                // Count living organisms
+                if (organism instanceof Plant) {
+                    this.stats.plantCount++;
+                } else if (organism instanceof Herbivore) {
+                    this.stats.creatureCount++;
+                }
             }
         }
+
+        // Update total population
+        this.stats.totalPopulation = this.stats.plantCount + this.stats.creatureCount;
 
         // Process reproduction
         const newOrganisms = [];
@@ -463,17 +483,19 @@ class EcosystemManager {
     }
 
     getPlantCount() {
-        return this.organisms.filter(org => org instanceof Plant).length;
+        return this.stats.plantCount;
     }
     
     getCreatureCount() {
-        return this.organisms.filter(org => org instanceof Herbivore).length;
+        return this.stats.creatureCount;
     }
     
-    setDaySpeed(speed) {
-        // Convert slider value (30-120) to day length (120-30)
-        // This makes the slider more intuitive: left = slower, right = faster
-        this.environmentalFactors.dayLength = 150 - speed;
+    getTotalPopulation() {
+        return this.stats.totalPopulation;
+    }
+
+    getDaysSurvived() {
+        return this.stats.daysSurvived;
     }
 
     removeNearbyOrganisms(point, radius) {
@@ -486,15 +508,12 @@ class EcosystemManager {
                 this.organisms.splice(i, 1);
             }
         }
-        this.stats.totalPopulation = this.organisms.length;
     }
 
-    getTotalPopulation() {
-        return this.stats.totalPopulation;
-    }
-
-    getDaysSurvived() {
-        return this.stats.daysSurvived;
+    setDaySpeed(speed) {
+        // Convert slider value (30-120) to day length (120-30)
+        // This makes the slider more intuitive: left = slower, right = faster
+        this.environmentalFactors.dayLength = 150 - speed;
     }
 }
 
