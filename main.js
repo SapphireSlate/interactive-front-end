@@ -71,7 +71,8 @@ class DigitalGarden {
         const sunGeometry = new THREE.SphereGeometry(1, 32, 32);
         const sunMaterial = new THREE.MeshBasicMaterial({
             color: 0xffff00,
-            emissive: 0xffff00,
+            transparent: true,
+            opacity: 1.0
         });
         this.sun = new THREE.Mesh(sunGeometry, sunMaterial);
         this.scene.add(this.sun);
@@ -123,6 +124,10 @@ class DigitalGarden {
             const z = (Math.random() - 0.5) * 15;
             this.ecosystem.addHerbivore(new THREE.Vector3(x, 0, z));
         }
+
+        // Initialize stats with initial population
+        this.ecosystem.stats.totalPopulation = initialPlants + initialCreatures;
+        this.updateStats();
     }
 
     setupUI() {
@@ -195,17 +200,36 @@ class DigitalGarden {
     }
 
     updateStats() {
-        const plantCount = document.getElementById('plant-count');
-        const creatureCount = document.getElementById('creature-count');
-        const totalPopulation = document.getElementById('total-population');
-        const daysSurvived = document.getElementById('days-survived');
-        
-        if (this.ecosystem) {
-            if (plantCount) plantCount.textContent = this.ecosystem.getPlantCount();
-            if (creatureCount) creatureCount.textContent = this.ecosystem.getCreatureCount();
-            if (totalPopulation) totalPopulation.textContent = this.ecosystem.getTotalPopulation();
-            if (daysSurvived) daysSurvived.textContent = this.ecosystem.getDaysSurvived();
-        }
+        if (!this.ecosystem) return;
+
+        const elements = {
+            plantCount: document.getElementById('plant-count'),
+            creatureCount: document.getElementById('creature-count'),
+            totalPopulation: document.getElementById('total-population'),
+            daysSurvived: document.getElementById('days-survived')
+        };
+
+        // Get the values
+        const stats = {
+            plants: this.ecosystem.getPlantCount(),
+            creatures: this.ecosystem.getCreatureCount(),
+            total: this.ecosystem.getTotalPopulation(),
+            days: Math.floor(this.ecosystem.getDaysSurvived())
+        };
+
+        console.log('Raw stats:', stats);
+        console.log('Elements found:', {
+            plantCount: !!elements.plantCount,
+            creatureCount: !!elements.creatureCount,
+            totalPopulation: !!elements.totalPopulation,
+            daysSurvived: !!elements.daysSurvived
+        });
+
+        // Update the elements
+        if (elements.plantCount) elements.plantCount.textContent = stats.plants;
+        if (elements.creatureCount) elements.creatureCount.textContent = stats.creatures;
+        if (elements.totalPopulation) elements.totalPopulation.textContent = stats.total;
+        if (elements.daysSurvived) elements.daysSurvived.textContent = stats.days;
     }
 
     animate() {
@@ -247,13 +271,13 @@ class DigitalGarden {
         if (this.ecosystem) {
             this.ecosystem.environmentalFactors.isDayTime = normalizedHeight > 0.3;
             this.ecosystem.environmentalFactors.lightLevel = lightIntensity;
-        }
-        
-        if (this.ecosystem) {
             this.ecosystem.update();
-            this.updateStats();
         }
         
+        // Update stats display
+        this.updateStats();
+        
+        // Render scene
         if (this.renderer && this.scene && this.camera) {
             this.renderer.render(this.scene, this.camera);
         }

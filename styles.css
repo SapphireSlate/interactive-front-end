@@ -127,6 +127,20 @@ body {
     font-size: 0.9rem;
 }
 
+.score-display {
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid rgba(255, 255, 255, 0.2);
+    text-align: center;
+    font-weight: 500;
+}
+
+.score-display div {
+    margin: 5px 0;
+    color: #4a90e2;
+    text-shadow: 0 0 5px rgba(74, 144, 226, 0.5);
+}
+
 @media (max-width: 768px) {
     .ui-controls {
         width: 90%;
