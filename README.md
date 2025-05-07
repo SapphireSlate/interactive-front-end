@@ -73,7 +73,7 @@ A stunning interactive 3D particle animation built with Three.js, featuring dyna
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/yourusername/interactive-3d-particles.git
+git clone https://github.com/SapphireSlate/interactive-3d-particles.git
 ```
 
 2. Open the project directory:
